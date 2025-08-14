@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Classpath Test Schema",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The name of the test"
+    },
+    "value": {
+      "type": "integer",
+      "description": "A test numeric value"
+    }
+  },
+  "required": ["name"]
+}
