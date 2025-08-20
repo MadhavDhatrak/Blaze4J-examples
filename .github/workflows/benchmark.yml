@@ -46,38 +46,27 @@ jobs:
         
       - name: Start Spring Boot app
         run: |
-          # Determine if we're in the spring-boot-example directory or need to cd into it
-          if [ -d "spring-boot-example" ]; then
-            cd spring-boot-example
-          fi
-          
-          # Check if we're in the right directory
-          if [ ! -f "pom.xml" ]; then
-            echo "Cannot find pom.xml - wrong directory"
-            pwd
-            ls -la
-            exit 1
-          fi
-          
-          # Start the Spring Boot app
-          echo "Starting Spring Boot app..."
-          nohup mvn spring-boot:run -Dspring-boot.run.jvmArguments="--enable-native-access=ALL-UNNAMED" > app.log 2>&1 &
-          
-          # Wait for app to start
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            sleep 30
+          # Move into module if needed
+          [ -d spring-boot-example ] && cd spring-boot-example
+
+          if [ ! -f pom.xml ]; then
+            echo "pom.xml not found – wrong directory"; pwd; ls -la; exit 1; fi
+
+          echo "Starting Spring Boot for $RUNNER_OS..."
+
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            # Use PowerShell Start-Process to run in background without blocking step
+            powershell -Command "Start-Process mvn '-q','spring-boot:run','-Dspring-boot.run.jvmArguments=\"--enable-native-access=ALL-UNNAMED\"' -NoNewWindow"
           else
-            sleep 15
+            nohup mvn -q spring-boot:run -Dspring-boot.run.jvmArguments="--enable-native-access=ALL-UNNAMED" >/dev/null 2>&1 &
           fi
-          
-          # Check if the app started successfully
-          if ! curl -s http://localhost:8080/actuator/health &>/dev/null; then
-            echo "Spring Boot app failed to start. Here's the log:"
-            cat app.log
-            exit 1
-          else
-            echo "Spring Boot app started successfully"
-          fi
+
+          # Poll actuator health for up to 60s
+          for i in {1..30}; do
+            if curl -sf http://localhost:8080/actuator/health >/dev/null; then
+              echo "Spring Boot is UP"; exit 0; fi; sleep 2; done
+
+          echo "Spring Boot failed to start, printing log:"; cat app.log || true; exit 1
         shell: bash
       
       # Generate sample data files for testing
