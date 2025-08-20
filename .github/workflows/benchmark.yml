@@ -27,46 +27,34 @@ jobs:
           
       - name: Build with Maven
         run: |
+          # Ensure we're in repo root
           ls -la
           pwd
-          if [ -d "spring-boot-example" ]; then
-            cd spring-boot-example
-            mvn clean package
-          else
-            # Try to find where the code is
-            find . -type d -maxdepth 2
-            # If we're already in the spring-boot-example directory
-            if [ -f "pom.xml" ]; then
-              mvn clean package
-            else
-              echo "Cannot find spring-boot-example directory or pom.xml"
-              exit 1
-            fi
-          fi
+          # Build the Spring Boot jar once (skip tests for speed)
+          cd spring-boot-example
+          mvn -q -DskipTests package
+        shell: bash
         
       - name: Start Spring Boot app
         run: |
           # Move into module if needed
           [ -d spring-boot-example ] && cd spring-boot-example
 
-          if [ ! -f pom.xml ]; then
-            echo "pom.xml not found – wrong directory"; pwd; ls -la; exit 1; fi
-
-          echo "Starting Spring Boot for $RUNNER_OS..."
+          JAR=$(ls target/*-SNAPSHOT.jar | head -n 1)
+          echo "Running $JAR"
 
           if [[ "$RUNNER_OS" == "Windows" ]]; then
-            # Use PowerShell Start-Process to run in background without blocking step
-            powershell -Command "Start-Process mvn '-q','spring-boot:run','-Dspring-boot.run.jvmArguments=\"--enable-native-access=ALL-UNNAMED\"' -NoNewWindow"
+            powershell -Command "Start-Process 'java' '-jar','${JAR}' -NoNewWindow"
           else
-            nohup mvn -q spring-boot:run -Dspring-boot.run.jvmArguments="--enable-native-access=ALL-UNNAMED" >/dev/null 2>&1 &
+            nohup java -jar "$JAR" >/dev/null 2>&1 &
           fi
 
-          # Poll actuator health for up to 60s
+          # Poll health endpoint (timeout 60s)
           for i in {1..30}; do
             if curl -sf http://localhost:8080/actuator/health >/dev/null; then
-              echo "Spring Boot is UP"; exit 0; fi; sleep 2; done
+              echo 'Spring Boot is UP'; exit 0; fi; sleep 2; done
 
-          echo "Spring Boot failed to start, printing log:"; cat app.log || true; exit 1
+          echo 'Spring Boot failed to start'; cat app.log || true; exit 1
         shell: bash
       
       # Generate sample data files for testing
