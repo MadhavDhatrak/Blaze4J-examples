@@ -30,6 +30,12 @@
             <artifactId>blaze4j</artifactId>
             <version>0.0.2</version>
         </dependency>
+        <!-- Everit JSON Schema validator for benchmarking -->
+        <dependency>
+            <groupId>com.github.erosb</groupId>
+            <artifactId>everit-json-schema</artifactId>
+            <version>1.14.3</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

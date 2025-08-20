@@ -1,0 +1,79 @@
+name: Blaze4j Benchmarks
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  benchmark:
+    name: Run on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        java: [22]  # Test only with Java 22
+
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'temurin'
+          
+      - name: Build with Maven
+        run: cd spring-boot-example && mvn clean package
+        
+      - name: Start Spring Boot app
+        run: |
+          cd spring-boot-example
+          nohup mvn spring-boot:run -Dspring-boot.run.jvmArguments="--enable-native-access=ALL-UNNAMED" > app.log 2>&1 &
+          # Wait for app to start
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            sleep 30
+          else
+            sleep 15
+          fi
+        shell: bash
+      
+      # Generate sample data files for testing
+      - name: Generate sample data
+        run: |
+          cd spring-boot-example
+          # Create directories
+          mkdir -p src/main/resources/example
+          
+          # Create small sample file
+          echo '[{"id":"EMP00001","fullName":"Test Employee","birthDate":"1990-01-01","department":"HR","title":"Manager","salary":50000,"currency":"USD","address":{"street":"123 Main St","city":"Testville","postalCode":"12345","country":"US"},"contacts":[{"type":"email","value":"test@example.com","primary":true}]}]' > employees-sample.json
+          
+          # Compile and run the data generator to create a small pre-generated file
+          # This ensures the benchmark endpoint can use a pre-generated file for consistency
+          mvn compile exec:java -Dexec.mainClass="com.example.util.DataGenerator" -Dexec.args="1000" -q > src/main/resources/example/employees-large.json
+          
+      - name: Run benchmarks
+        run: |
+          cd spring-boot-example
+          
+          echo "=== Small sample benchmark ==="
+          curl -F "file=@employees-sample.json" http://localhost:8080/api/upload
+          
+          echo -e "\n=== 10k records benchmark (5 runs) ==="
+          for i in {1..5}; do
+            curl -s http://localhost:8080/api/benchmark
+            echo
+          done
+          
+          echo -e "\n=== 100k records benchmark ==="
+          curl "http://localhost:8080/api/benchmark?size=100000"
+        shell: bash
+      
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: logs-${{ matrix.os }}-java${{ matrix.java }}
+          path: spring-boot-example/app.log

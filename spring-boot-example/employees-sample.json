@@ -1,0 +1,92 @@
+[
+  {
+    "id": "EMP00001",
+    "fullName": "Alice Smith",
+    "birthDate": "1988-03-12",
+    "department": "ENGINEERING",
+    "title": "Software Engineer",
+    "salary": 80000,
+    "currency": "USD",
+    "address": {
+      "street": "123 Elm St",
+      "city": "Metropolis",
+      "postalCode": "12345",
+      "country": "US"
+    },
+    "contacts": [
+      { "type": "email", "value": "alice.smith@example.com", "primary": true }
+    ]
+  },
+  {
+    "id": "EMP00002",
+    "fullName": "Bob Johnson",
+    "birthDate": "1992-07-01",
+    "department": "SALES",
+    "title": "Account Executive",
+    "salary": 65000,
+    "currency": "USD",
+    "address": {
+      "street": "456 Maple Ave",
+      "city": "Gotham",
+      "postalCode": "54321",
+      "country": "US"
+    },
+    "contacts": [
+      { "type": "email", "value": "bob.johnson@example.com", "primary": true }
+    ]
+  },
+  {
+    "id": "EMP00003",
+    "fullName": "Carol Diaz",
+    "birthDate": "1985-11-20",
+    "department": "HR",
+    "title": "HR Manager",
+    "salary": 72000,
+    "currency": "USD",
+    "address": {
+      "street": "789 Oak Blvd",
+      "city": "Central City",
+      "postalCode": "67890",
+      "country": "US"
+    },
+    "contacts": [
+      { "type": "email", "value": "carol.diaz@example.com", "primary": true }
+    ]
+  },
+  {
+    "id": "EMP00004",
+    "fullName": "David Lee",
+    "birthDate": "1990-02-14",
+    "department": "FINANCE",
+    "title": "Financial Analyst",
+    "salary": 70000,
+    "currency": "USD",
+    "address": {
+      "street": "321 Pine St",
+      "city": "Star City",
+      "postalCode": "98765",
+      "country": "US"
+    },
+    "contacts": [
+      { "type": "email", "value": "david.lee@example.com", "primary": true }
+    ]
+  },
+  {
+    "id": "EMP00005",
+    "fullName": "Eve Turner",
+    "birthDate": "1995-09-30",
+    "department": "MARKETING",
+    "title": "Marketing Specialist",
+    "salary": 60000,
+    "currency": "USD",
+    "address": {
+      "street": "654 Cedar Rd",
+      "city": "Coast City",
+      "postalCode": "19283",
+      "country": "US"
+    },
+    "contacts": [
+      { "type": "email", "value": "eve.turner@example.com", "primary": true }
+    ]
+  }
+]

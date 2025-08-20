@@ -1,1 +1,28 @@
-/target
+# Maven build files
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# IDE files
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.vscode/
+
+# Large data files
+src/main/resources/example/employees-large.json
+
+# Logs
+*.log
+app.log*
+
+# OS specific files
+.DS_Store
+Thumbs.db
