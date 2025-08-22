@@ -4,12 +4,8 @@ on:
   workflow_dispatch:  # Allow manual trigger
   push:
     branches: [ main ]
-    paths:
-      - 'spring-boot-example/**'
   pull_request:
     branches: [ main ]
-    paths:
-      - 'spring-boot-example/**'
 
 jobs:
   benchmark:
