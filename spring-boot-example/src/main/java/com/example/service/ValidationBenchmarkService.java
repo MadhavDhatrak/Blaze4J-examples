@@ -19,79 +19,84 @@ import org.springframework.stereotype.Service;
 @Service
 public class ValidationBenchmarkService {
 
-	public Map<String, Object> validateWithAll(String schemaJson, String instanceJson) {
+	public Map<String, Object> validateWithAll(String schemaJson, String instanceJson, int iterationCount) {
 		Map<String, Object> result = new LinkedHashMap<>();
-		result.put("blaze4j", runBlaze(schemaJson, instanceJson));
-		result.put("json-sKema", runJsonSkema(schemaJson, instanceJson));
-		result.put("everit", runEverit(schemaJson, instanceJson));
+		result.put("blaze4j", runBlaze(schemaJson, instanceJson, iterationCount));
+		result.put("json-sKema", runJsonSkema(schemaJson, instanceJson, iterationCount));
+		result.put("everit", runEverit(schemaJson, instanceJson, iterationCount));
 		return result;
 }
 
-	public Map<String, Object> validateWithNames(Map<String, String> nameToSchema, String instanceJson) {
+	public Map<String, Object> validateWithNames(Map<String, String> nameToSchema, String instanceJson, int iterationCount) {
 		Map<String, Object> result = new LinkedHashMap<>();
 		nameToSchema.forEach((name, schema) -> {
 			switch (name) {
-				case "blaze4j" -> result.put(name, runBlaze(schema, instanceJson));
-				case "json-sKema" -> result.put(name, runJsonSkema(schema, instanceJson));
-				case "everit" -> result.put(name, runEverit(schema, instanceJson));
+				case "blaze4j" -> result.put(name, runBlaze(schema, instanceJson, iterationCount));
+				case "json-sKema" -> result.put(name, runJsonSkema(schema, instanceJson, iterationCount));
+				case "everit" -> result.put(name, runEverit(schema, instanceJson, iterationCount));
 				default -> result.put(name, Map.of("error", "unknown validator"));
 			}
 		});
 		return result;
 	}
 
-	public Map<String, Object> validateWithAllSchemas(String modernSchema, String draft07Schema, String instanceJson) {
+	public Map<String, Object> validateWithAllSchemas(String modernSchema, String draft07Schema, String instanceJson, int iterationCount) {
 		Map<String, Object> result = new LinkedHashMap<>();
-		result.put("blaze4j", runBlaze(modernSchema, instanceJson));
-		result.put("json-sKema", runJsonSkema(modernSchema, instanceJson));
-		result.put("everit", runEverit(draft07Schema, instanceJson));
+		result.put("blaze4j", runBlaze(modernSchema, instanceJson, iterationCount));
+		result.put("json-sKema", runJsonSkema(modernSchema, instanceJson, iterationCount));
+		result.put("everit", runEverit(draft07Schema, instanceJson, iterationCount));
 		return result;
 	}
 
-	private Map<String, Object> runBlaze(String schemaJson, String instanceJson) {
-		long start = System.nanoTime();
-		boolean valid;
+	private Map<String, Object> runBlaze(String schemaJson, String instanceJson, int iterationCount) {
+		boolean valid = true;
 		try (CompiledSchema compiled = Blaze.compile(schemaJson)) {
-			boolean res = Blaze.validate(compiled, instanceJson);
-			valid = res;
+            long start = System.nanoTime();
+            for (int i = 0; i < iterationCount; ++i) {
+                valid = Blaze.validate(compiled, instanceJson);
+            }
+            long end = System.nanoTime();
+            return map(valid, end - start);
 		}
-		long end = System.nanoTime();
-		return map(valid, end - start);
 	}
 
-	private Map<String, Object> runJsonSkema(String schemaJson, String instanceJson) {
-		long start = System.nanoTime();
-		boolean valid;
+	private Map<String, Object> runJsonSkema(String schemaJson, String instanceJson, int iterationCount) {
+		boolean valid = true;
 		Schema schema = new SchemaLoader(new JsonParser(schemaJson).parse()).load();
-		ValidationFailure failure = com.github.erosb.jsonsKema.Validator.forSchema(schema).validate(new JsonParser(instanceJson).parse());
-		valid = failure == null;
+        long start = System.nanoTime();
+        for (int i = 0; i < iterationCount; ++i) {
+            ValidationFailure failure = com.github.erosb.jsonsKema.Validator.forSchema(schema).validate(
+                    new JsonParser(instanceJson).parse());
+            valid = failure == null;
+        }
 		long end = System.nanoTime();
 		return map(valid, end - start);
 	}
 
-	private Map<String, Object> runEverit(String schemaJson, String instanceJson) {
-		long start = System.nanoTime();
-		boolean valid;
-		try {
-			// Parse the schema
-			JSONObject rawSchema = new JSONObject(new JSONTokener(schemaJson));
-			org.everit.json.schema.Schema schema = org.everit.json.schema.loader.SchemaLoader.load(rawSchema);
-			
-			// Parse the instance based on whether it's an object or array
-			String trimmed = instanceJson.trim();
-			if (trimmed.startsWith("{")) {
-				JSONObject instance = new JSONObject(new JSONTokener(instanceJson));
-				schema.validate(instance);
-			} else {
-				JSONArray instance = new JSONArray(new JSONTokener(instanceJson));
-				schema.validate(instance);
-			}
-			valid = true;
-		} catch (ValidationException e) {
-			valid = false;
-		} catch (Exception e) {
-			valid = false;
-		}
+	private Map<String, Object> runEverit(String schemaJson, String instanceJson, int iterationCount) {
+		boolean valid = true;
+        long start = -1;
+        // Parse the schema
+        JSONObject rawSchema = new JSONObject(new JSONTokener(schemaJson));
+        org.everit.json.schema.Schema schema = org.everit.json.schema.loader.SchemaLoader.load(rawSchema);
+        // Parse the instance based on whether it's an object or array
+        String trimmed = instanceJson.trim();
+        start = System.nanoTime();
+        for (int i = 0; i < iterationCount; ++i) {
+            try {
+                if (trimmed.startsWith("{")) {
+                    JSONObject instance = new JSONObject(new JSONTokener(instanceJson));
+                    schema.validate(instance);
+                } else {
+                    JSONArray instance = new JSONArray(new JSONTokener(instanceJson));
+                    schema.validate(instance);
+                }
+                valid = true;
+
+            } catch (ValidationException e) {
+                valid = false;
+            }
+        }
 		long end = System.nanoTime();
 		return map(valid, end - start);
 	}

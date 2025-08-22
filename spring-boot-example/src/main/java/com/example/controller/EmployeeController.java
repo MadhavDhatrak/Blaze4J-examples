@@ -45,10 +45,10 @@ public class EmployeeController {
 		String schemaForModern = schemaService.loadSchema2020();
 
 		Map<String, Object> outcome = switch (validator.toLowerCase()) {
-			case "blaze4j" -> benchmarkService.validateWithNames(Map.of("blaze4j", schemaForModern), instanceJson);
-			case "json-skema", "skema" -> benchmarkService.validateWithNames(Map.of("json-sKema", schemaForModern), instanceJson);
-			case "everit" -> benchmarkService.validateWithNames(Map.of("everit", schemaForEverit), instanceJson);
-			case "all" -> benchmarkService.validateWithAllSchemas(schemaForModern, schemaForEverit, instanceJson);
+			case "blaze4j" -> benchmarkService.validateWithNames(Map.of("blaze4j", schemaForModern), instanceJson, 1);
+			case "json-skema", "skema" -> benchmarkService.validateWithNames(Map.of("json-sKema", schemaForModern), instanceJson, 1);
+			case "everit" -> benchmarkService.validateWithNames(Map.of("everit", schemaForEverit), instanceJson, 1);
+			case "all" -> benchmarkService.validateWithAllSchemas(schemaForModern, schemaForEverit, instanceJson, 1);
 			default -> throw new IllegalArgumentException("Unknown validator: " + validator);
 		};
 		return ResponseEntity.ok(outcome);
@@ -60,7 +60,7 @@ public class EmployeeController {
 		String instanceJson = new String(file.getBytes());
 		String schemaForEverit = schemaService.loadSchemaDraft07();
 		String schemaForModern = schemaService.loadSchema2020();
-		Map<String, Object> all = benchmarkService.validateWithAllSchemas(schemaForModern, schemaForEverit, instanceJson);
+		Map<String, Object> all = benchmarkService.validateWithAllSchemas(schemaForModern, schemaForEverit, instanceJson, 1);
 		return ResponseEntity.ok(all);
 	}
 }

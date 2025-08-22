@@ -29,7 +29,7 @@ public class BenchmarkController {
 
     @GetMapping(value = "/direct", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> directBenchmark(
-            @RequestParam(defaultValue = "200000") int count) {
+            @RequestParam(defaultValue = "200000") int count, @RequestParam(defaultValue = "1") int iterationCount) {
         
         
         String instanceJson = dataGeneratorService.generateEmployeesJson(count);
@@ -40,7 +40,7 @@ public class BenchmarkController {
         
         // Run benchmark
         Map<String, Object> results = benchmarkService.validateWithAllSchemas(
-                schemaForModern, schemaForEverit, instanceJson);
+                schemaForModern, schemaForEverit, instanceJson, iterationCount);
         
         return ResponseEntity.ok(results);
     }
