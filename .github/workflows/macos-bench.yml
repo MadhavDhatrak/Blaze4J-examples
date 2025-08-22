@@ -36,18 +36,13 @@ jobs:
         run: |
           cd spring-boot-example
           nohup mvn spring-boot:run -Dspring-boot.run.jvmArguments="--enable-native-access=ALL-UNNAMED" > app.log 2>&1 &
-          echo "Waiting for app to start..."
-          # Wait for app to start (max 60 seconds)
+          # Wait for app to start 
           for i in {1..30}; do
             if curl -fs http://localhost:8080/actuator/health > /dev/null; then
-              echo "✓ App is up and running"
               break
             fi
-            echo "Waiting for app to start... ($i/30)"
             sleep 2
-            # If we've tried 30 times and still no success, fail
             if [ $i -eq 30 ]; then
-              echo "❌ App failed to start within 60 seconds"
               cat app.log
               exit 1
             fi
@@ -59,7 +54,6 @@ jobs:
           cd spring-boot-example
           echo "Generating ${{ matrix.data-size }} employee records"
           curl -s "http://localhost:8080/api/employees/generate?count=${{ matrix.data-size }}" > employees_${{ matrix.data-size }}.json
-          echo "Generated $(du -h employees_${{ matrix.data-size }}.json | cut -f1) of test data"
         shell: bash
       
       - name: Run Direct Benchmark (${{ matrix.data-size }} records)
