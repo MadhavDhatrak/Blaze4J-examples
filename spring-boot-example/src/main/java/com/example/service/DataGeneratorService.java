@@ -97,8 +97,8 @@ public class DataGeneratorService {
 		String country = RANDOM.nextBoolean() ? "US" : (RANDOM.nextBoolean() ? "CA" : "GB");
 		String postal = switch (country) {
 			case "US" -> String.valueOf(10000 + RANDOM.nextInt(89999));
-			case "CA" -> "A1A 1A1"; // fixed pattern example
-			default -> "SW1A 1AA"; // GB example, not strictly validated
+			case "CA" -> "A1A 1A1"; 
+			default -> "SW1A 1AA"; 
 		};
 		return new StringBuilder(160)
 			.append('{')

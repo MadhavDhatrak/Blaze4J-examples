@@ -55,15 +55,7 @@ jobs:
           curl -s "http://localhost:8080/api/employees/generate?count=${{ matrix.data-size }}" > employees_${{ matrix.data-size }}.json
         shell: bash
       
-      - name: Run Direct Benchmark (${{ matrix.data-size }} records)
-        run: |
-          cd spring-boot-example
-          echo "Running in-memory benchmark with ${{ matrix.data-size }} records"
-          curl -s "http://localhost:8080/api/benchmark/direct?count=${{ matrix.data-size }}" > benchmark-direct-${{ matrix.data-size }}.json
-          cat benchmark-direct-${{ matrix.data-size }}.json
-        shell: bash
-        
-      - name: Run File-based Benchmark (${{ matrix.data-size }} records)
+      - name: Run Benchmark (${{ matrix.data-size }} records)
         run: |
           cd spring-boot-example
           echo "Running file-based benchmark with ${{ matrix.data-size }} records"
@@ -75,6 +67,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: benchmark-results-windows-${{ matrix.data-size }}
-          path: |
-            spring-boot-example/benchmark-direct-${{ matrix.data-size }}.json
-            spring-boot-example/benchmark-file-${{ matrix.data-size }}.json
+          path: spring-boot-example/benchmark-file-${{ matrix.data-size }}.json
