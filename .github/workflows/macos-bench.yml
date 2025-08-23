@@ -1,0 +1,73 @@
+name: Blaze4j macOS Benchmarks
+
+on:
+  workflow_dispatch:  # Allow manual trigger
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  benchmark:
+    name: macOS Benchmarks
+    strategy:
+      matrix:
+        data-size: [10000, 50000, 100000]
+      fail-fast: false
+    
+    runs-on: macos-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK 22
+        uses: actions/setup-java@v4
+        with:
+          java-version: '22'
+          distribution: 'temurin'
+          cache: maven
+      
+      - name: Build with Maven
+        run: |
+          cd spring-boot-example
+          mvn clean package -DskipTests
+      
+      - name: Start Spring Boot App
+        run: |
+          cd spring-boot-example
+          nohup mvn spring-boot:run -Dspring-boot.run.jvmArguments="--enable-native-access=ALL-UNNAMED" > app.log 2>&1 &
+          # Wait for app to start 
+          for i in {1..30}; do
+            if curl -fs http://localhost:8080/actuator/health > /dev/null; then
+              break
+            fi
+            sleep 2
+            if [ $i -eq 30 ]; then
+              cat app.log
+              exit 1
+            fi
+          done
+        shell: bash
+      
+      - name: Generate Test Data (${{ matrix.data-size }} records)
+        run: |
+          cd spring-boot-example
+          echo "Generating ${{ matrix.data-size }} employee records"
+          curl -s "http://localhost:8080/api/employees/generate?count=${{ matrix.data-size }}" > employees_${{ matrix.data-size }}.json
+        shell: bash
+      
+
+        
+      - name: Run Benchmark (${{ matrix.data-size }} records)
+        run: |
+          cd spring-boot-example
+          echo "Running file-based benchmark with ${{ matrix.data-size }} records"
+          curl -X POST -F "file=@employees_${{ matrix.data-size }}.json" "http://localhost:8080/api/employees/benchmark" > benchmark-file-${{ matrix.data-size }}.json
+          cat benchmark-file-${{ matrix.data-size }}.json
+        shell: bash
+      
+      - name: Upload Benchmark Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results-macos-${{ matrix.data-size }}
+          path: spring-boot-example/benchmark-file-${{ matrix.data-size }}.json
