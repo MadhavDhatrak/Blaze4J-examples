@@ -6,10 +6,17 @@ import com.github.erosb.jsonsKema.JsonParser;
 import com.github.erosb.jsonsKema.Schema;
 import com.github.erosb.jsonsKema.SchemaLoader;
 import com.github.erosb.jsonsKema.ValidationFailure;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.SpecVersion;
+import com.networknt.schema.ValidationMessage;
 
 import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import org.everit.json.schema.ValidationException;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -24,6 +31,7 @@ public class ValidationBenchmarkService {
 		result.put("blaze4j", runBlaze(schemaJson, instanceJson));
 		result.put("json-sKema", runJsonSkema(schemaJson, instanceJson));
 		result.put("everit", runEverit(schemaJson, instanceJson));
+		result.put("networknt", runNetworknt(schemaJson, instanceJson));
 		return result;
 }
 
@@ -34,6 +42,7 @@ public class ValidationBenchmarkService {
 				case "blaze4j" -> result.put(name, runBlaze(schema, instanceJson));
 				case "json-sKema" -> result.put(name, runJsonSkema(schema, instanceJson));
 				case "everit" -> result.put(name, runEverit(schema, instanceJson));
+				case "networknt" -> result.put(name, runNetworknt(schema, instanceJson));
 				default -> result.put(name, Map.of("error", "unknown validator"));
 			}
 		});
@@ -45,6 +54,7 @@ public class ValidationBenchmarkService {
 		result.put("blaze4j", runBlaze(modernSchema, instanceJson));
 		result.put("json-sKema", runJsonSkema(modernSchema, instanceJson));
 		result.put("everit", runEverit(draft07Schema, instanceJson));
+		result.put("networknt", runNetworknt(modernSchema, instanceJson));
 		return result;
 	}
 
@@ -76,8 +86,6 @@ public class ValidationBenchmarkService {
 			// Parse the schema
 			JSONObject rawSchema = new JSONObject(new JSONTokener(schemaJson));
 			org.everit.json.schema.Schema schema = org.everit.json.schema.loader.SchemaLoader.load(rawSchema);
-			
-			// Parse the instance based on whether it's an object or array
 			String trimmed = instanceJson.trim();
 			if (trimmed.startsWith("{")) {
 				JSONObject instance = new JSONObject(new JSONTokener(instanceJson));
@@ -102,6 +110,26 @@ public class ValidationBenchmarkService {
 		m.put("nanos", nanos);
 		m.put("millis", Duration.ofNanos(nanos).toMillis());
 		return m;
+	}
+
+	private Map<String, Object> runNetworknt(String schemaJson, String instanceJson) {
+		long start = System.nanoTime();
+		boolean valid;
+		try {
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode schemaNode = objectMapper.readTree(schemaJson);
+			JsonNode instanceNode = objectMapper.readTree(instanceJson);
+			
+			JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V202012);
+			JsonSchema schema = factory.getSchema(schemaNode);
+			
+			Set<ValidationMessage> validationResult = schema.validate(instanceNode);
+			valid = validationResult.isEmpty();
+		} catch (Exception e) {
+			valid = false;
+		}
+		long end = System.nanoTime();
+		return map(valid, end - start);
 	}
 }
 

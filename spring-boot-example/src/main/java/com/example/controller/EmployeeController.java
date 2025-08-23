@@ -48,6 +48,7 @@ public class EmployeeController {
 			case "blaze4j" -> benchmarkService.validateWithNames(Map.of("blaze4j", schemaForModern), instanceJson);
 			case "json-skema", "skema" -> benchmarkService.validateWithNames(Map.of("json-sKema", schemaForModern), instanceJson);
 			case "everit" -> benchmarkService.validateWithNames(Map.of("everit", schemaForEverit), instanceJson);
+			case "networknt" -> benchmarkService.validateWithNames(Map.of("networknt", schemaForModern), instanceJson);
 			case "all" -> benchmarkService.validateWithAllSchemas(schemaForModern, schemaForEverit, instanceJson);
 			default -> throw new IllegalArgumentException("Unknown validator: " + validator);
 		};
