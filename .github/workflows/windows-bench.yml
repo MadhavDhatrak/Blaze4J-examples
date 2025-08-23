@@ -15,7 +15,7 @@ jobs:
         data-size: [10000, 50000, 100000]
       fail-fast: false
     
-    runs-on: windows-latest
+    runs-on: windows-2022
     
     steps:
       - uses: actions/checkout@v4

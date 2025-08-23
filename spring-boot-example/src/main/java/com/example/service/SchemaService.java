@@ -17,6 +17,7 @@ public class SchemaService {
 		return loadResourceAsString("schemas/employee-schema-draft07.json");
 	}
 
+	
 	private String loadResourceAsString(String path) {
 		try {
 			ClassPathResource resource = new ClassPathResource(path);
