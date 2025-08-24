@@ -12,7 +12,7 @@ jobs:
     name: macOS Benchmarks
     strategy:
       matrix:
-        data-size: [10000, 50000, 100000]
+        data-size: [10000, 50000, 100000, 200000]
       fail-fast: false
     
     runs-on: macos-14
