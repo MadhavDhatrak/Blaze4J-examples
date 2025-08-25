@@ -1,7 +1,8 @@
 package com.example.service;
 
-import com.github.madhavdhatrak.blaze4j.Blaze;
+import com.github.madhavdhatrak.blaze4j.BlazeValidator;
 import com.github.madhavdhatrak.blaze4j.CompiledSchema;
+import com.github.madhavdhatrak.blaze4j.SchemaCompiler;
 import com.github.erosb.jsonsKema.JsonParser;
 import com.github.erosb.jsonsKema.Schema;
 import com.github.erosb.jsonsKema.SchemaLoader;
@@ -60,10 +61,12 @@ public class ValidationBenchmarkService {
 
     private Map<String, Object> runBlaze(String schemaJson, String instanceJson, int iterationCount) {
         boolean valid = true;
-        try (CompiledSchema compiled = Blaze.compile(schemaJson)) {
+        SchemaCompiler compiler = new SchemaCompiler();
+        try (CompiledSchema compiled = compiler.compile(schemaJson)) {
+            BlazeValidator validator = new BlazeValidator();
             long start = System.nanoTime();
             for (int i = 0; i < iterationCount; ++i) {
-                valid = Blaze.validate(compiled, instanceJson);
+                valid = validator.validate(compiled, instanceJson);
             }
             long end = System.nanoTime();
             return map(valid, end - start);

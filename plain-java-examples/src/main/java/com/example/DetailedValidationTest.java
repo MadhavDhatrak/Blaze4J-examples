@@ -1,7 +1,8 @@
 package com.example;
 
-import com.github.madhavdhatrak.blaze4j.Blaze;
+import com.github.madhavdhatrak.blaze4j.BlazeValidator;
 import com.github.madhavdhatrak.blaze4j.CompiledSchema;
+import com.github.madhavdhatrak.blaze4j.SchemaCompiler;
 import com.github.madhavdhatrak.blaze4j.ValidationResult;
 
 public class DetailedValidationTest {
@@ -15,8 +16,10 @@ public class DetailedValidationTest {
 
         String invalidEnumInstance = "\"yellow\"";
 
-        try (CompiledSchema compiledSchema = Blaze.compile(enumSchemaJson)) {
-            ValidationResult result = Blaze.validateWithDetails(compiledSchema, invalidEnumInstance);
+        SchemaCompiler compiler = new SchemaCompiler();
+        try (CompiledSchema compiledSchema = compiler.compile(enumSchemaJson)) {
+            BlazeValidator validator = new BlazeValidator();
+            ValidationResult result = validator.validateWithDetails(compiledSchema, invalidEnumInstance);
 
             System.out.println("Is valid: " + result.isValid());
 

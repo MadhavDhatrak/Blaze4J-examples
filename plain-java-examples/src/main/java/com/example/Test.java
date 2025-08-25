@@ -1,7 +1,9 @@
 package com.example;
 
-import com.github.madhavdhatrak.blaze4j.Blaze;
+import com.github.madhavdhatrak.blaze4j.BlazeValidator;
 import com.github.madhavdhatrak.blaze4j.CompiledSchema;
+import com.github.madhavdhatrak.blaze4j.SchemaCompiler;
+
 public class Test {
     public static void main(String[] args) {
         String schemaJson = """
@@ -11,13 +13,16 @@ public class Test {
             }
             """;
 
-        try (CompiledSchema schema = Blaze.compile(schemaJson)) {
+        SchemaCompiler compiler = new SchemaCompiler();
+        try (CompiledSchema schema = compiler.compile(schemaJson)) {
+             BlazeValidator validator = new BlazeValidator();
+            
             // Test valid string input
-            boolean validStringResult = Blaze.validate(schema, "\"hello\"");
+            boolean validStringResult = validator.validate(schema, "\"hello\"");
             System.out.println("Validation result for \"hello\": " + validStringResult);
 
             // Test invalid number input
-            boolean invalidNumberResult = Blaze.validate(schema, "42");
+            boolean invalidNumberResult = validator.validate(schema, "42");
             System.out.println("Validation result for 42: " + invalidNumberResult);
         }
     }

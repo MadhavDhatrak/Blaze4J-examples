@@ -2,8 +2,9 @@ package com.example;
 
 import com.example.dto.ValidationRequest;
 import com.example.dto.ValidationResponse;
-import com.github.madhavdhatrak.blaze4j.Blaze;
+import com.github.madhavdhatrak.blaze4j.BlazeValidator;
 import com.github.madhavdhatrak.blaze4j.CompiledSchema;
+import com.github.madhavdhatrak.blaze4j.SchemaCompiler;
 import com.github.madhavdhatrak.blaze4j.ValidationError;
 import com.github.madhavdhatrak.blaze4j.ValidationResult;
 import java.util.Collections;
@@ -21,8 +22,10 @@ public class ValidationController {
 
     @PostMapping("/validate")
     public ResponseEntity<ValidationResponse> validate(@RequestBody ValidationRequest request) {
-        try (CompiledSchema schema = Blaze.compile(request.schema())) {
-            ValidationResult result = Blaze.validateWithDetails(schema, request.instance());
+        SchemaCompiler compiler = new SchemaCompiler();
+        try (CompiledSchema schema = compiler.compile(request.schema())) {
+            BlazeValidator validator = new BlazeValidator();
+            ValidationResult result = validator.validateWithDetails(schema, request.instance());
 
             List<String> errors = result.isValid() ? Collections.emptyList() :
                     result.getErrors().stream().map(ValidationError::toString).toList();
